@@ -4,8 +4,8 @@ use clap::{App, Arg};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
-pub fn run() -> MyResult<()> {
-  println!("Hello world!");
+pub fn run(config: Config) -> MyResult<()> {
+  dbg!(config);
   Ok(())
 }
 
@@ -16,7 +16,7 @@ pub struct Config {
   number_nonblank_lines: bool,
 }
 
-fn get_args() -> MyResult<Config> {
+pub fn get_args() -> MyResult<Config> {
   let matches = App::new("catr")
     .version("0.1.0")
     .author("tatenodev <@tatenodev>")
@@ -25,29 +25,28 @@ fn get_args() -> MyResult<Config> {
       Arg::with_name("files")
         .value_name("FILES")
         .help("Input file path")
-        .required(true)
-        .min_values(1)
+        .multiple(true)
+        .default_value("-")
     )
     .arg(
-      Arg::with_name("number_lines")
+      Arg::with_name("number")
          .short("n")
-         .help("foo")
+         .long("number")
+         .help("Number")
          .takes_value(false)
+         .conflicts_with("number_nonblank")
     )
     .arg(
-      Arg::with_name("number_nonblank_lines")
+      Arg::with_name("number_nonblank")
       .short("b")
-      .help("bar")
+      .long("number-nonblank")
+      .help("Number nonblank")
       .takes_value(false)
     ).get_matches();
-
-  let files = matches.values_of_lossy("files").unwrap();
-  let number_lines = matches.is_present("number_lines");
-  let number_nonblank_lines = matches.is_present("number_nonblank_lines");
-
+  
   Ok(Config {
-    files: files,
-    number_lines: number_lines,
-    number_nonblank_lines: number_nonblank_lines,
+    files: matches.values_of_lossy("files").unwrap(),
+    number_lines: matches.is_present("number"),
+    number_nonblank_lines: matches.is_present("number_nonblank"),
   })
 }
