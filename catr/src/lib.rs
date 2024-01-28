@@ -1,6 +1,6 @@
 use clap::{App, Arg};
 use std::error::Error;
-use std::fs::File;
+use std::fs::{read_to_string, File};
 use std::io::{self, BufRead, BufReader};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
@@ -14,7 +14,15 @@ fn open(filename: &str) -> MyResult<Box<dyn BufRead>>{
 
 pub fn run(config: Config) -> MyResult<()> {
   for filename in config.files {
-    println!("{}", filename);
+    match open(&filename) {
+        Err(err) => eprintln!("{}: {}", filename, err),
+        Ok(file) => {
+          for line_result in file.lines() {
+            let line = line_result?;
+            println!("{}", line);
+          }
+        }
+    }
   }
   Ok(())
 }
